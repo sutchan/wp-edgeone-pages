@@ -1,0 +1,94 @@
+# EdgeOne Pages Accelerator
+# Copyright (C) 2024 Tencent Cloud
+# This file is distributed under GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: EdgeOne Pages Accelerator 1.0.1\n"
+"Report-Msgid-Bugs-To: https://github.com/tencentcloud/wp-edgeone-pages\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Tencent Cloud\n"
+"Language-Team: Tencent Cloud\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "EdgeOne Pages 配置"
+msgstr "EdgeOne Pages Configuration"
+
+msgid "EdgeOne Pages"
+msgstr "EdgeOne Pages"
+
+msgid "您没有权限访问此页面。"
+msgstr "You do not have permission to access this page."
+
+msgid "请输入有效的域名（例如：xxx.pages.dev）"
+msgstr "Please enter a valid domain (e.g., xxx.pages.dev)"
+
+msgid "基本设置"
+msgstr "General Settings"
+
+msgid "配置腾讯云 EdgeOne Pages 加速域名和基础设置"
+msgstr "Configure Tencent Cloud EdgeOne Pages acceleration domain and basic settings"
+
+msgid "启用加速"
+msgstr "Enable Acceleration"
+
+msgid "EdgeOne Pages 域名"
+msgstr "EdgeOne Pages Domain"
+
+msgid "例如：xxx.pages.dev"
+msgstr "e.g., xxx.pages.dev"
+
+msgid "优化设置"
+msgstr "Optimization Settings"
+
+msgid "配置图片优化和资源压缩选项"
+msgstr "Configure image optimization and resource compression options"
+
+msgid "启用 WebP 格式"
+msgstr "Enable WebP Format"
+
+msgid "自动将图片转换为 WebP 格式以减小文件大小"
+msgstr "Automatically convert images to WebP format to reduce file size"
+
+msgid "优化图片"
+msgstr "Optimize Images"
+
+msgid "启用图片优化功能"
+msgstr "Enable image optimization feature"
+
+msgid "图片懒加载"
+msgstr "Lazy Load Images"
+
+msgid "延迟加载图片，提高首屏加载速度"
+msgstr "Defer image loading to improve initial page load speed"
+
+msgid "压缩 CSS"
+msgstr "Minify CSS"
+
+msgid "压缩 CSS 文件，减小文件大小"
+msgstr "Compress CSS files to reduce file size"
+
+msgid "压缩 JavaScript"
+msgstr "Minify JavaScript"
+
+msgid "压缩 JavaScript 文件，减小文件大小"
+msgstr "Compress JavaScript files to reduce file size"
+
+msgid "缓存设置"
+msgstr "Cache Settings"
+
+msgid "配置静态资源缓存策略"
+msgstr "Configure static resource caching strategy"
+
+msgid "静态资源缓存时间（秒）"
+msgstr "Static Resource Cache Duration (seconds)"
+
+msgid "默认值：31536000 秒（1年）"
+msgstr "Default: 31536000 seconds (1 year)"
+
+msgid "EdgeOne Pages 已启用，但未配置加速域名，请在 <a href=\"options-general.php?page=edgeone-pages\">设置页面</a> 中配置。"
+msgstr "EdgeOne Pages is enabled but no acceleration domain is configured. Please configure it in the <a href=\"options-general.php?page=edgeone-pages\">settings page</a>."
