@@ -74,24 +74,12 @@ class EdgeOne_Pages_Filters {
 
         $home_url = home_url();
         $edgeone_domain = $this->get_edgeone_url('');
+        $pattern = '/<img([^>]+)src="(' . preg_quote($home_url, '/') . '[^"]+)"([^>]*)>/i';
 
-        $content = preg_replace_callback(
-            '/<img([^>]*)src=["\'](' . preg_quote($home_url, '/') . ')([^"\']*)["\']([^>]*)>/i',
-            function($matches) use ($edgeone_domain, $home_url) {
-                $before_src = $matches[1];
-                $original_url = $matches[2] . $matches[3];
-                $after_src = $matches[4];
-
-                $new_url = str_replace($home_url, $edgeone_domain, $original_url);
-
-                if (!empty($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
-                    $new_url = $this->add_image_optimization_params($new_url);
-                }
-
-                return '<img' . $before_src . 'src="' . $new_url . '"' . $after_src . '>';
-            },
-            $content
-        );
+        $content = preg_replace_callback($pattern, function($matches) use ($home_url, $edgeone_domain) {
+            $src = str_replace($home_url, $edgeone_domain, $matches[2]);
+            return '<img' . $matches[1] . 'src="' . esc_url($src) . '"' . $matches[3] . '>';
+        }, $content);
 
         if (!empty($this->options['lazy_load']) && $this->options['lazy_load'] == '1') {
             $content = $this->add_lazy_load_attr($content);
@@ -178,13 +166,26 @@ class EdgeOne_Pages_Filters {
     }
 
     private function add_image_optimization_params($url) {
+        $parsed = parse_url($url);
+        if (!isset($parsed['path'])) {
+            return $url;
+        }
+
+        $path = strtolower($parsed['path']);
         $image_extensions = array('.jpg', '.jpeg', '.png', '.gif', '.webp');
-        $url_lower = strtolower($url);
-        $is_image = false;
 
         foreach ($image_extensions as $ext) {
-            if (strpos($url_lower, $ext) !== false) {
-                $is_image = true;
+            if (substr($path, -strlen($ext)) === $ext) {
+                $separator = strpos($url, '?') === false ? '?' : '&';
+
+                $params = array();
+                if (!empty($this->options['webp_enabled']) && $this->options['webp_enabled'] == '1') {
+                    $params[] = 'format=webp';
+                }
+
+                if (!empty($params)) {
+                    $url .= $separator . implode('&', $params);
+                }
                 break;
             }
         }
@@ -208,15 +209,12 @@ class EdgeOne_Pages_Filters {
     }
 
     private function add_image_optimization_to_content($content) {
-        return preg_replace_callback(
-            '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i',
-            function($matches) {
-                $src = $matches[1];
-                $optimized_src = $this->add_image_optimization_params($src);
-                return str_replace($src, $optimized_src, $matches[0]);
-            },
-            $content
-        );
+        $pattern = '/<img([^>]+)src="([^"]+)"([^>]*)>/i';
+        return preg_replace_callback($pattern, function($matches) {
+            $src = $matches[2];
+            $optimized_src = $this->add_image_optimization_params($src);
+            return '<img' . $matches[1] . 'src="' . esc_url($optimized_src) . '"' . $matches[3] . '>';
+        }, $content);
     }
 
     private function add_lazy_load_attr($content) {
