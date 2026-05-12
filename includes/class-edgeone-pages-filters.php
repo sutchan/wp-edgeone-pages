@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-edgeone-pages-filters.php v1.0.1
+ * File: includes/class-edgeone-pages-filters.php v1.0.2
  * Description: WordPress 过滤器处理
  */
 
@@ -85,10 +85,6 @@ class EdgeOne_Pages_Filters {
             $content = $this->add_lazy_load_attr($content);
         }
 
-        if (!empty($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
-            $content = $this->add_image_optimization_to_content($content);
-        }
-
         return $content;
     }
 
@@ -109,7 +105,7 @@ class EdgeOne_Pages_Filters {
     }
 
     public function admin_notice() {
-        if (!empty($this->options['enabled']) && $this->options['enabled'] == '1' && empty($this->options['domain'])) {
+        if ($this->is_plugin_enabled() && !$this->is_domain_configured()) {
         ?>
         <div class="notice notice-warning">
             <p><?php _e('EdgeOne Pages 已启用，但未配置加速域名，请在 <a href="options-general.php?page=edgeone-pages">设置页面</a> 中配置。', 'edgeone-pages'); ?></p>
@@ -118,8 +114,46 @@ class EdgeOne_Pages_Filters {
         }
     }
 
+    public function send_cache_headers() {
+        if (!$this->is_enabled()) {
+            return;
+        }
+
+        if (headers_sent()) {
+            $this->log_error('无法发送缓存头，响应头已发送');
+            return;
+        }
+
+        $cache_control = isset($this->options['cache_control']) ? intval($this->options['cache_control']) : 31536000;
+
+        if ($cache_control > 0) {
+            $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+
+            $static_extensions = array('.css', '.js', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot');
+            $is_static = false;
+            foreach ($static_extensions as $ext) {
+                if (stripos($request_uri, $ext) !== false) {
+                    $is_static = true;
+                    break;
+                }
+            }
+
+            if ($is_static) {
+                header('Cache-Control: public, max-age=' . $cache_control);
+            }
+        }
+    }
+
     private function is_enabled() {
-        return isset($this->options['enabled']) && $this->options['enabled'] == '1' && !empty($this->options['domain']);
+        return $this->is_plugin_enabled() && $this->is_domain_configured();
+    }
+
+    private function is_plugin_enabled() {
+        return !empty($this->options['enabled']) && $this->options['enabled'] == '1';
+    }
+
+    private function is_domain_configured() {
+        return !empty($this->options['domain']);
     }
 
     private function get_edgeone_url($relative_path) {
@@ -156,7 +190,22 @@ class EdgeOne_Pages_Filters {
             }
         }
 
-        return $url;
+        if (!$is_image) {
+            return $url;
+        }
+
+        $params = array();
+
+        if (!empty($this->options['webp_enabled']) && $this->options['webp_enabled'] == '1') {
+            $params[] = 'format=webp';
+        }
+
+        if (empty($params)) {
+            return $url;
+        }
+
+        $separator = strpos($url, '?') === false ? '?' : '&';
+        return $url . $separator . implode('&', $params);
     }
 
     private function add_image_optimization_to_content($content) {
@@ -169,6 +218,26 @@ class EdgeOne_Pages_Filters {
     }
 
     private function add_lazy_load_attr($content) {
-        return str_replace('<img ', '<img loading="lazy" ', $content);
+        return preg_replace_callback(
+            '/<img([^>]*)>/i',
+            function($matches) {
+                $attrs = $matches[1];
+                if (preg_match('/\bloading\s*=/i', $attrs)) {
+                    return $matches[0];
+                }
+                return '<img loading="lazy"' . $attrs . '>';
+            },
+            $content
+        );
+    }
+
+    private function log_error($message, $context = array()) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $log_message = '[EdgeOne Pages] ' . $message;
+            if (!empty($context)) {
+                $log_message .= ' | Context: ' . wp_json_encode($context);
+            }
+            error_log($log_message);
+        }
     }
 }

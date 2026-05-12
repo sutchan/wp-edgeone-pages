@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-edgeone-pages-settings.php v1.0.1
+ * File: includes/class-edgeone-pages-settings.php v1.0.2
  * Description: WordPress 设置页面管理
  */
 
@@ -130,9 +130,12 @@ class EdgeOne_Pages_Settings {
         $sanitized['enabled'] = isset($input['enabled']) ? '1' : '0';
 
         $domain = sanitize_text_field($input['domain']);
-        if (!empty($domain) && !preg_match('/^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/', $domain)) {
-            add_settings_error('edgeone_pages_group', 'invalid_domain', __('请输入有效的域名（例如：xxx.pages.dev）', 'edgeone-pages'), 'error');
-            $domain = '';
+        if (!empty($domain)) {
+            if (!$this->validate_domain($domain)) {
+                add_settings_error('edgeone_pages_group', 'invalid_domain', __('请输入有效的域名（例如：xxx.pages.dev）', 'edgeone-pages'), 'error');
+                $this->log_error('域名验证失败', array('domain' => $domain));
+                $domain = '';
+            }
         }
         $sanitized['domain'] = $domain;
 
@@ -146,7 +149,42 @@ class EdgeOne_Pages_Settings {
         $sanitized['lazy_load'] = isset($input['lazy_load']) ? '1' : '0';
         $sanitized['minify_css'] = isset($input['minify_css']) ? '1' : '0';
         $sanitized['minify_js'] = isset($input['minify_js']) ? '1' : '0';
+
+        $this->log_error('配置已更新', array('enabled' => $sanitized['enabled'], 'domain' => $sanitized['domain'] ? '已配置' : '未配置'));
+
         return $sanitized;
+    }
+
+    private function validate_domain($domain) {
+        $domain = strtolower(trim($domain));
+
+        if (empty($domain)) {
+            return false;
+        }
+
+        if (strlen($domain) > 253) {
+            return false;
+        }
+
+        if (strpos($domain, '.') === false) {
+            return false;
+        }
+
+        if (!preg_match('/^[a-z0-9]([a-z0-9\-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]*[a-z0-9])?)+$/i', $domain)) {
+            return false;
+        }
+
+        $labels = explode('.', $domain);
+        foreach ($labels as $label) {
+            if (strlen($label) > 63 || strlen($label) < 1) {
+                return false;
+            }
+            if (strpos($label, '-') === 0 || strrpos($label, '-') === strlen($label) - 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function render_admin_page() {
@@ -223,5 +261,15 @@ class EdgeOne_Pages_Settings {
         $cache_control = isset($this->options['cache_control']) ? $this->options['cache_control'] : '31536000';
         echo '<input type="number" name="edgeone_pages_options[cache_control]" value="' . esc_attr($cache_control) . '" class="regular-text" min="0" />';
         echo '<p class="description">' . __('默认值：31536000 秒（1年）', 'edgeone-pages') . '</p>';
+    }
+
+    private function log_error($message, $context = array()) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $log_message = '[EdgeOne Pages Settings] ' . $message;
+            if (!empty($context)) {
+                $log_message .= ' | Context: ' . wp_json_encode($context);
+            }
+            error_log($log_message);
+        }
     }
 }
