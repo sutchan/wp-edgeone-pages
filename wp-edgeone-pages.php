@@ -23,6 +23,9 @@ class EdgeOne_Pages_Plugin {
     private $options;
 
     public function __construct() {
+        set_error_handler(array($this, 'error_handler'));
+        set_exception_handler(array($this, 'exception_handler'));
+
         $this->options = get_option('edgeone_pages_options');
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
@@ -32,11 +35,21 @@ class EdgeOne_Pages_Plugin {
         add_filter('wp_get_attachment_url', array($this, 'filter_attachment_url'), 10, 2);
         add_filter('the_content', array($this, 'filter_content_images'));
         add_action('admin_notices', array($this, 'admin_notice'));
-        register_activation_hook(__FILE__, array($this, 'activate'));
-        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
     }
 
-    public function activate() {
+    public function error_handler($errno, $errstr, $errfile, $errline) {
+        if (!(error_reporting() & $errno)) {
+            return false;
+        }
+        error_log(sprintf('[EdgeOne Pages] Error %d: %s in %s on line %d', $errno, $errstr, $errfile, $errline));
+        return true;
+    }
+
+    public function exception_handler($exception) {
+        error_log(sprintf('[EdgeOne Pages] Uncaught Exception: %s in %s on line %d', $exception->getMessage(), $exception->getFile(), $exception->getLine()));
+    }
+
+    public static function activate() {
         $default_options = array(
             'enabled' => '0',
             'domain' => '',
@@ -50,8 +63,16 @@ class EdgeOne_Pages_Plugin {
         add_option('edgeone_pages_options', $default_options);
     }
 
-    public function deactivate() {
+    public static function deactivate() {
         delete_option('edgeone_pages_options');
+    }
+
+    private function is_enabled() {
+        return isset($this->options['enabled']) && $this->options['enabled'] == '1' && !empty($this->options['domain']);
+    }
+
+    private function get_edgeone_url($relative_path) {
+        return 'https://' . $this->options['domain'] . $relative_path;
     }
 
     public function add_admin_menu() {
@@ -156,9 +177,20 @@ class EdgeOne_Pages_Plugin {
     public function sanitize_options($input) {
         $sanitized = array();
         $sanitized['enabled'] = isset($input['enabled']) ? '1' : '0';
-        $sanitized['domain'] = sanitize_text_field($input['domain']);
+
+        $domain = sanitize_text_field($input['domain']);
+        if (!empty($domain) && !preg_match('/^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/', $domain)) {
+            add_settings_error('edgeone_pages_group', 'invalid_domain', __('请输入有效的域名（例如：xxx.pages.dev）', 'edgeone-pages'), 'error');
+            $domain = '';
+        }
+        $sanitized['domain'] = $domain;
+
         $sanitized['webp_enabled'] = isset($input['webp_enabled']) ? '1' : '0';
-        $sanitized['cache_control'] = intval($input['cache_control']);
+
+        $cache_control = intval($input['cache_control']);
+        $cache_control = max(0, min($cache_control, 31536000));
+        $sanitized['cache_control'] = $cache_control;
+
         $sanitized['optimize_images'] = isset($input['optimize_images']) ? '1' : '0';
         $sanitized['lazy_load'] = isset($input['lazy_load']) ? '1' : '0';
         $sanitized['minify_css'] = isset($input['minify_css']) ? '1' : '0';
@@ -243,23 +275,22 @@ class EdgeOne_Pages_Plugin {
     }
 
     public function admin_notice() {
-        if (isset($this->options['enabled']) && $this->options['enabled'] == '1') {
-            if (empty($this->options['domain'])) {
-                ?>
-                <div class="notice notice-warning">
-                    <p><?php _e('EdgeOne Pages 已启用，但未配置加速域名，请在 <a href="options-general.php?page=edgeone-pages">设置页面</a> 中配置。', 'edgeone-pages'); ?></p>
-                </div>
-                <?php
-            }
+        if (!$this->is_enabled()) {
+            return;
         }
+        ?>
+        <div class="notice notice-warning">
+            <p><?php _e('EdgeOne Pages 已启用，但未配置加速域名，请在 <a href="options-general.php?page=edgeone-pages">设置页面</a> 中配置。', 'edgeone-pages'); ?></p>
+        </div>
+        <?php
     }
 
     public function enqueue_scripts() {
-        if (!isset($this->options['enabled']) || $this->options['enabled'] != '1') {
+        if (!$this->is_enabled()) {
             return;
         }
-        
-        if (isset($this->options['lazy_load']) && $this->options['lazy_load'] == '1') {
+
+        if (!empty($this->options['lazy_load']) && $this->options['lazy_load'] == '1') {
             wp_enqueue_script(
                 'edgeone-lazyload',
                 EDGEONE_PAGES_PLUGIN_URL . 'assets/js/lazyload.min.js',
@@ -271,87 +302,71 @@ class EdgeOne_Pages_Plugin {
     }
 
     public function filter_script_src($src, $handle) {
-        if (!isset($this->options['enabled']) || $this->options['enabled'] != '1') {
+        if (!$this->is_enabled()) {
             return $src;
         }
-        
-        if (empty($this->options['domain'])) {
-            return $src;
-        }
-        
+
         if (strpos($src, home_url()) === 0) {
             $relative_path = str_replace(home_url(), '', $src);
-            $src = 'https://' . $this->options['domain'] . $relative_path;
-            
-            if (isset($this->options['minify_js']) && $this->options['minify_js'] == '1') {
+            $src = $this->get_edgeone_url($relative_path);
+
+            if (!empty($this->options['minify_js']) && $this->options['minify_js'] == '1') {
                 $src = $this->add_minify_param($src, 'js');
             }
         }
-        
+
         return $src;
     }
 
     public function filter_style_src($src, $handle) {
-        if (!isset($this->options['enabled']) || $this->options['enabled'] != '1') {
+        if (!$this->is_enabled()) {
             return $src;
         }
-        
-        if (empty($this->options['domain'])) {
-            return $src;
-        }
-        
+
         if (strpos($src, home_url()) === 0) {
             $relative_path = str_replace(home_url(), '', $src);
-            $src = 'https://' . $this->options['domain'] . $relative_path;
-            
-            if (isset($this->options['minify_css']) && $this->options['minify_css'] == '1') {
+            $src = $this->get_edgeone_url($relative_path);
+
+            if (!empty($this->options['minify_css']) && $this->options['minify_css'] == '1') {
                 $src = $this->add_minify_param($src, 'css');
             }
         }
-        
+
         return $src;
     }
 
     public function filter_attachment_url($url, $post_id) {
-        if (!isset($this->options['enabled']) || $this->options['enabled'] != '1') {
+        if (!$this->is_enabled()) {
             return $url;
         }
-        
-        if (empty($this->options['domain'])) {
-            return $url;
-        }
-        
+
         if (strpos($url, home_url()) === 0) {
             $relative_path = str_replace(home_url(), '', $url);
-            $url = 'https://' . $this->options['domain'] . $relative_path;
-            
-            if (isset($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
+            $url = $this->get_edgeone_url($relative_path);
+
+            if (!empty($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
                 $url = $this->add_image_optimization_params($url);
             }
         }
-        
+
         return $url;
     }
 
     public function filter_content_images($content) {
-        if (!isset($this->options['enabled']) || $this->options['enabled'] != '1') {
+        if (!$this->is_enabled()) {
             return $content;
         }
-        
-        if (empty($this->options['domain'])) {
-            return $content;
-        }
-        
+
         $home_url = home_url();
-        $edgeone_domain = 'https://' . $this->options['domain'];
-        
+        $edgeone_domain = $this->get_edgeone_url('');
+
         $content = str_replace('src="' . $home_url, 'src="' . $edgeone_domain, $content);
-        
-        if (isset($this->options['lazy_load']) && $this->options['lazy_load'] == '1') {
+
+        if (!empty($this->options['lazy_load']) && $this->options['lazy_load'] == '1') {
             $content = $this->add_lazy_load_attr($content);
         }
-        
-        if (isset($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
+
+        if (!empty($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
             $content = $this->add_image_optimization_to_content($content);
         }
         
@@ -401,3 +416,6 @@ class EdgeOne_Pages_Plugin {
 }
 
 new EdgeOne_Pages_Plugin();
+
+register_activation_hook(__FILE__, array('EdgeOne_Pages_Plugin', 'activate'));
+register_deactivation_hook(__FILE__, array('EdgeOne_Pages_Plugin', 'deactivate'));
