@@ -173,19 +173,11 @@ class EdgeOne_Pages_Filters {
 
         $path = strtolower($parsed['path']);
         $image_extensions = array('.jpg', '.jpeg', '.png', '.gif', '.webp');
+        $is_image = false;
 
         foreach ($image_extensions as $ext) {
             if (substr($path, -strlen($ext)) === $ext) {
-                $separator = strpos($url, '?') === false ? '?' : '&';
-
-                $params = array();
-                if (!empty($this->options['webp_enabled']) && $this->options['webp_enabled'] == '1') {
-                    $params[] = 'format=webp';
-                }
-
-                if (!empty($params)) {
-                    $url .= $separator . implode('&', $params);
-                }
+                $is_image = true;
                 break;
             }
         }

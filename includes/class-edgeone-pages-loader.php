@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-edgeone-pages-loader.php v1.0.1
+ * File: includes/class-edgeone-pages-loader.php v1.0.2
  * Description: WordPress 钩子加载器
  */
 
