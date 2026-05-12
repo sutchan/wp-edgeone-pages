@@ -131,6 +131,11 @@ class EdgeOne_Pages_Filters {
             return;
         }
 
+        if (headers_sent()) {
+            $this->log_error('无法发送缓存头，响应头已发送');
+            return;
+        }
+
         $cache_control = isset($this->options['cache_control']) ? intval($this->options['cache_control']) : 31536000;
 
         if ($cache_control > 0) {
@@ -145,7 +150,7 @@ class EdgeOne_Pages_Filters {
                 }
             }
 
-            if ($is_static && strpos($request_uri, $this->options['domain']) !== false) {
+            if ($is_static) {
                 header('Cache-Control: public, max-age=' . $cache_control);
             }
         }
