@@ -105,7 +105,7 @@ class EdgeOne_Pages_Filters {
     }
 
     public function admin_notice() {
-        if (isset($this->options['enabled']) && $this->options['enabled'] == '1' && !$this->is_enabled()) {
+        if (!empty($this->options['enabled']) && $this->options['enabled'] == '1' && empty($this->options['domain'])) {
         ?>
         <div class="notice notice-warning">
             <p><?php _e('EdgeOne Pages 已启用，但未配置加速域名，请在 <a href="options-general.php?page=edgeone-pages">设置页面</a> 中配置。', 'edgeone-pages'); ?></p>
