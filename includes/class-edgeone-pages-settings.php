@@ -193,7 +193,7 @@ class EdgeOne_Pages_Settings {
 
     public function render_optimize_images_field() {
         $enabled = isset($this->options['optimize_images']) ? $this->options['optimize_images'] : '1';
-        echo '<input type="checkbox" name="edgeone_pages_options[optimize_images]" value="1" . checked('1', $enabled, false) . ' />';
+        echo '<input type="checkbox" name="edgeone_pages_options[optimize_images]" value="1" ' . checked('1', $enabled, false) . ' />';
         echo '<p class="description">' . __('启用图片优化功能', 'edgeone-pages') . '</p>';
     }
 

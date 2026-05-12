@@ -60,6 +60,11 @@ GPLv2 或更高版本
 
 欢迎提交 Issue 和 Pull Request！
 
+## 版本历史
+
+- v1.0.1: 优化代码结构，添加国际化支持
+- v1.0.0: 初始版本
+
 ---
 
 # EdgeOne Pages Accelerator
@@ -123,3 +128,8 @@ Tencent Cloud
 ## Contributing
 
 Issues and pull requests are welcome!
+
+## Changelog
+
+- v1.0.1: Optimized code structure, added internationalization support
+- v1.0.0: Initial release
