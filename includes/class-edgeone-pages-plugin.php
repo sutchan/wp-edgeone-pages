@@ -20,10 +20,11 @@ class EdgeOne_Pages_Plugin {
     private $filters;
 
     public function __construct() {
-        set_error_handler(array($this, 'error_handler'));
-        set_exception_handler(array($this, 'exception_handler'));
-
         $this->options = get_option('edgeone_pages_options');
+        if ($this->options === false) {
+            $this->options = array();
+        }
+
         $this->init_components();
         $this->register_hooks();
     }
