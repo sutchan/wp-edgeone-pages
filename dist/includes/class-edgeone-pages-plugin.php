@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-edgeone-pages-plugin.php v1.0.1
+ * File: includes/class-edgeone-pages-plugin.php v1.0.2
  * Description: EdgeOne Pages 主插件类
  */
 
@@ -39,6 +39,7 @@ class EdgeOne_Pages_Plugin {
         $this->loader->add_action('admin_init', $this->settings, 'register_settings');
         $this->loader->add_action('wp_enqueue_scripts', $this->filters, 'enqueue_scripts');
         $this->loader->add_action('admin_notices', $this->filters, 'admin_notice');
+        $this->loader->add_action('send_headers', $this->filters, 'send_cache_headers');
 
         $this->loader->add_filter('script_loader_src', $this->filters, 'filter_script_src', 10, 2);
         $this->loader->add_filter('style_loader_src', $this->filters, 'filter_style_src', 10, 2);

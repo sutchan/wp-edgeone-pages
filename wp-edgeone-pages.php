@@ -3,7 +3,7 @@
  * Plugin Name: EdgeOne Pages Accelerator
  * Plugin URI: https://github.com/tencentcloud/wp-edgeone-pages
  * Description: 利用腾讯云 EdgeOne Pages 为 WordPress 网站提供静态资源加速和图片优化服务
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Tencent Cloud
  * Author URI: https://cloud.tencent.com/
  * License: GPLv2 or later
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('EDGEONE_PAGES_VERSION', '1.0.1');
+define('EDGEONE_PAGES_VERSION', '1.0.2');
 define('EDGEONE_PAGES_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EDGEONE_PAGES_PLUGIN_URL', plugin_dir_url(__FILE__));
 
