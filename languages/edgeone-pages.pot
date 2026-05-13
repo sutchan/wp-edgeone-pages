@@ -3,7 +3,7 @@
 # This file is distributed under GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: EdgeOne Pages Accelerator 1.0.1\n"
+"Project-Id-Version: EdgeOne Pages Accelerator 1.0.3\n"
 "Report-Msgid-Bugs-To: https://github.com/tencentcloud/wp-edgeone-pages\n"
 "POT-Creation-Date: 2024-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-01 00:00+0000\n"

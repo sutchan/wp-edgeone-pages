@@ -9,6 +9,7 @@
 - **图片懒加载**：延迟加载图片，提高首屏加载速度
 - **资源压缩**：支持 CSS 和 JavaScript 文件压缩
 - **缓存控制**：自定义静态资源缓存时间
+- **安全稳定**：完善的错误处理和异常捕获机制
 
 ## 安装步骤
 
@@ -48,6 +49,14 @@
 3. 配置自定义域名（可选）
 4. 启用图片优化和资源压缩功能
 
+## 测试
+
+插件包含测试文件，您可以在 `tests/` 目录下找到。运行测试：
+
+```bash
+php tests/test-edgeone-pages.php
+```
+
 ## 许可证
 
 GPLv2 或更高版本
@@ -62,6 +71,8 @@ GPLv2 或更高版本
 
 ## 版本历史
 
+- v1.0.3: 修复错误处理器，拆分设置类，统一版本号
+- v1.0.2: 优化图片优化逻辑，改进 URL 匹配
 - v1.0.1: 优化代码结构，添加国际化支持
 - v1.0.0: 初始版本
 
@@ -78,6 +89,7 @@ Accelerate your WordPress site using Tencent Cloud EdgeOne Pages.
 - **Image Lazy Loading**: Defer image loading to improve page speed
 - **Resource Minification**: Minify CSS and JavaScript files
 - **Cache Control**: Customizable cache duration for static resources
+- **Security & Stability**: Robust error handling and exception catch mechanism
 
 ## Installation
 
@@ -117,6 +129,14 @@ Accelerate your WordPress site using Tencent Cloud EdgeOne Pages.
 3. Configure custom domain (optional)
 4. Enable image optimization and resource minification
 
+## Testing
+
+The plugin includes test files in the `tests/` directory. Run tests:
+
+```bash
+php tests/test-edgeone-pages.php
+```
+
 ## License
 
 GPLv2 or later
@@ -131,5 +151,7 @@ Issues and pull requests are welcome!
 
 ## Changelog
 
+- v1.0.3: Fix error handlers, split settings class, unify version numbers
+- v1.0.2: Optimize image optimization logic, improve URL matching
 - v1.0.1: Optimized code structure, added internationalization support
 - v1.0.0: Initial release

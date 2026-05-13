@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-edgeone-pages-filters.php v1.0.2
+ * File: includes/class-edgeone-pages-filters.php v1.0.3
  * Description: WordPress 过滤器处理
  */
 
@@ -83,6 +83,10 @@ class EdgeOne_Pages_Filters {
 
         if (!empty($this->options['lazy_load']) && $this->options['lazy_load'] == '1') {
             $content = $this->add_lazy_load_attr($content);
+        }
+
+        if (!empty($this->options['optimize_images']) && $this->options['optimize_images'] == '1') {
+            $content = $this->add_image_optimization_to_content($content);
         }
 
         return $content;

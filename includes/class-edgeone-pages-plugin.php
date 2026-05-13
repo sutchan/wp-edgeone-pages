@@ -1,6 +1,6 @@
 <?php
 /**
- * File: includes/class-edgeone-pages-plugin.php v1.0.2
+ * File: includes/class-edgeone-pages-plugin.php v1.0.3
  * Description: EdgeOne Pages 主插件类
  */
 
@@ -20,6 +20,9 @@ class EdgeOne_Pages_Plugin {
     private $filters;
 
     public function __construct() {
+        set_error_handler(array($this, 'error_handler'));
+        set_exception_handler(array($this, 'exception_handler'));
+
         $this->options = get_option('edgeone_pages_options');
         if ($this->options === false) {
             $this->options = array();

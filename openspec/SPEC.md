@@ -5,7 +5,7 @@
 - **项目名称**: EdgeOne Pages Accelerator
 - **项目类型**: WordPress 插件
 - **核心功能**: 利用腾讯云 EdgeOne Pages 为 WordPress 网站提供静态资源加速和图片优化服务
-- **版本**: 1.0.1
+- **版本**: 1.0.3
 - **最低 WordPress 版本**: 4.9
 - **文本域**: edgeone-pages
 
@@ -13,31 +13,35 @@
 
 ```
 wp-edgeone-pages/
-├── wp-edgeone-pages.php              # 主入口文件
+├── wp-edgeone-pages.php                      # 主入口文件
 ├── includes/
-│   ├── class-edgeone-pages-plugin.php    # 主插件类
-│   ├── class-edgeone-pages-settings.php  # 设置页面
-│   ├── class-edgeone-pages-filters.php   # 过滤器处理
-│   └── class-edgeone-pages-loader.php    # 钩子加载器
+│   ├── class-edgeone-pages-plugin.php        # 主插件类
+│   ├── class-edgeone-pages-settings.php      # 设置页面管理
+│   ├── class-edgeone-pages-settings-renderer.php # 设置页面渲染器
+│   ├── class-edgeone-pages-settings-validator.php # 设置验证器
+│   ├── class-edgeone-pages-filters.php       # 过滤器处理
+│   └── class-edgeone-pages-loader.php        # 钩子加载器
 ├── assets/
 │   └── js/
-│       └── lazyload.min.js            # 懒加载脚本
-├── dist/                              # 构建产物目录
+│       └── lazyload.min.js                   # 懒加载脚本
+├── dist/                                      # 构建产物目录
 │   ├── wp-edgeone-pages.php
 │   ├── includes/
 │   ├── assets/
 │   ├── languages/
 │   ├── README.md
 │   └── LICENSE
-├── languages/                         # 国际化文件
-│   └── edgeone-pages.pot             # 模板文件
-├── openspec/                          # 项目规范文档
-│   └── SPEC.md                        # 本文件
-├── README.md                          # 项目说明
-├── LICENSE                            # GPLv2 许可证
+├── languages/                                 # 国际化文件
+│   └── edgeone-pages.pot                     # 模板文件
+├── openspec/                                  # 项目规范文档
+│   └── SPEC.md                                # 本文件
+├── tests/                                     # 测试文件
+│   └── test-edgeone-pages.php
+├── README.md                                  # 项目说明
+├── LICENSE                                    # GPLv2 许可证
 ├── .gitignore
 ├── .gitattributes
-└── wp-edgeone-pages.code-workspace    # VS Code 工作区配置
+└── wp-edgeone-pages.code-workspace            # VS Code 工作区配置
 ```
 
 ## 3. 代码规范
@@ -49,7 +53,7 @@ wp-edgeone-pages/
 ```php
 <?php
 /**
- * File: includes/class-edgeone-pages-plugin.php v1.0.1
+ * File: includes/class-edgeone-pages-plugin.php v1.0.3
  * Description: EdgeOne Pages 主插件类
  */
 ```
@@ -66,7 +70,7 @@ wp-edgeone-pages/
 | 类型 | 规范 | 示例 |
 |------|------|------|
 | 类名 | PascalCase | EdgeOne_Pages_Plugin |
-| 方法名 | camelCase | filterScriptSrc |
+| 方法名 | snake_case | filter_script_src |
 | 变量名 | snake_case | $default_options |
 | 常量 | UPPER_SNAKE_CASE | EDGEONE_PAGES_VERSION |
 | 钩子名 | kebab-case | edgeone_pages_before_filter |
@@ -76,7 +80,7 @@ wp-edgeone-pages/
 - 所有用户可见字符串必须使用 `__()` 或 `_e()` 函数
 - 文本域: `edgeone-pages`
 - 翻译文件命名: `edgeone-pages-{locale}.po/mo`
-- 模板文件: `edgeone-pages.pot`
+- 模板文件: `edgeone.pot`
 
 ### 3.5 WordPress 最佳实践
 
@@ -133,6 +137,7 @@ $default_options = array(
 | admin_init | 10 | 注册设置项 |
 | wp_enqueue_scripts | 10 | 加载前端脚本 |
 | admin_notices | 10 | 显示管理通知 |
+| send_headers | 10 | 发送缓存响应头 |
 
 ### 4.5 管理页面
 
@@ -148,7 +153,7 @@ $default_options = array(
 
 | 字段 | 验证规则 |
 |------|----------|
-| 域名 | `/^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/` |
+| 域名 | `/^[a-z0-9]([a-z0-9\-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9\-]*[a-z0-9])?)+$/i` |
 | 缓存时间 | `max(0, min($value, 31536000))` |
 | 布尔选项 | 统一为 '0' 或 '1' |
 
@@ -193,7 +198,7 @@ $default_options = array(
 ### 6.3 资源优化
 
 - CSS/JS 添加版本号避免缓存问题
-- 图片添加优化参数: `imageMogr2/thumbnail/`
+- 图片添加优化参数: `format=webp`
 - WebP 格式转换支持
 
 ## 7. API 规范
@@ -232,6 +237,7 @@ $default_options = array(
 ### 9.1 构建产物
 
 构建产物输出到 `dist/` 目录，包含：
+
 - 主入口文件
 - 所有 includes 文件
 - 静态资源
@@ -247,7 +253,23 @@ $default_options = array(
 
 ## 10. 变更日志
 
+### v1.0.3
+
+- 修复缺失的错误和异常处理器
+- 拆分设置类为验证器和渲染器两个独立类（解决代码超过200行问题）
+- 统一所有文件版本号为 1.0.3
+- 更新 openspec 文档以反映新的代码结构
+- 增加 send_headers 钩子用于缓存响应头
+
+### v1.0.2
+
+- 修复图片优化 URL 匹配逻辑
+- 使用 parse_url() 仅检查路径部分
+- 增加 esc_url() 输出转义
+- 改进内容图片替换逻辑
+
 ### v1.0.1
+
 - 修复激活钩子位置（移到类外部）
 - 添加域名格式验证
 - 添加缓存时间范围验证
@@ -257,6 +279,7 @@ $default_options = array(
 - 修复国际化硬编码字符串
 
 ### v1.0.0
+
 - 初始版本
 - 支持静态资源加速
 - 支持图片优化和 WebP 转换
@@ -266,5 +289,5 @@ $default_options = array(
 
 ---
 
-*文档版本: v1.0.1*
-*最后更新: 2026-05-12*
+*文档版本: v1.0.3*
+*最后更新: 2026-05-13*
